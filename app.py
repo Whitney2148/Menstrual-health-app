@@ -18,8 +18,8 @@ app = FastAPI(
 )
 
 # Mount static files and templates
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="deployment/static"), name="static")
+templates = Jinja2Templates(directory="deployment/templates")
 
 # Initialize your ML system
 from menstrual_system import WebMenstrualSystem
