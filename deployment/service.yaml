@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: menstrual-health-service
+spec:
+  selector:
+    app: menstrual-health-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: LoadBalancer

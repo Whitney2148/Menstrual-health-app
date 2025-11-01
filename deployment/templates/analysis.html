@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Analysis - Menstrual Health AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+            border-radius: 12px;
+        }
+        .card-header {
+            border-radius: 12px 12px 0 0 !important;
+            font-weight: 600;
+        }
+        .form-range::-webkit-slider-thumb {
+            background-color: #0d6efd;
+        }
+        .form-range::-moz-range-thumb {
+            background-color: #0d6efd;
+        }
+        .symptom-badge {
+            font-size: 0.8rem;
+            margin: 0.1rem;
+        }
+        .recommendation-item {
+            border-left: 3px solid #0d6efd;
+            padding-left: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .phase-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        .phase-menstrual { background-color: #dc3545; }
+        .phase-follicular { background-color: #0d6efd; }
+        .phase-ovulatory { background-color: #198754; }
+        .phase-luteal { background-color: #ffc107; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-heartbeat"></i> Menstrual Health AI
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link" href="/analysis">New Analysis</a>
+                <a class="nav-link" href="/history">History</a>
+                <a class="nav-link" href="/">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-stethoscope"></i> Menstrual Health Analysis</h4>
+                        <small class="opacity-75">Complete the form below to get personalized insights and recommendations</small>
+                    </div>
+                    <div class="card-body">
+                        <form id="analysisForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Current Menstrual Phase</label>
+                                        <select class="form-select" name="phase" required>
+                                            <option value="">Select your current phase</option>
+                                            <option value="menstrual">Menstrual (Days 1-5)</option>
+                                            <option value="follicular">Follicular (Days 6-13)</option>
+                                            <option value="ovulatory">Ovulatory (Days 14-15)</option>
+                                            <option value="luteal">Luteal (Days 16-28)</option>
+                                        </select>
+                                        <small class="form-text text-muted">Select the phase that best describes where you are in your cycle</small>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Pain Level: <span id="painValue" class="badge bg-primary">0</span>/10</label>
+                                        <input type="range" class="form-range" name="pain_level" min="0" max="10" value="0">
+                                        <div class="d-flex justify-content-between text-muted small">
+                                            <span>No pain</span>
+                                            <span>Mild</span>
+                                            <span>Moderate</span>
+                                            <span>Severe</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Flow Intensity</label>
+                                        <select class="form-select" name="flow_intensity" required>
+                                            <option value="light">Light</option>
+                                            <option value="moderate" selected>Moderate</option>
+                                            <option value="heavy">Heavy</option>
+                                            <option value="very_heavy">Very Heavy</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Current Mood</label>
+                                        <select class="form-select" name="mood">
+                                            <option value="Calm">😌 Calm</option>
+                                            <option value="Irritable">😠 Irritable</option>
+                                            <option value="Anxious">😰 Anxious</option>
+                                            <option value="Depressed">😔 Depressed</option>
+                                            <option value="Energetic">😄 Energetic</option>
+                                            <option value="Balanced">😊 Balanced</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Sleep Hours (last night)</label>
+                                        <input type="number" class="form-control" name="sleep_hours" min="0" max="24" step="0.5" value="7">
+                                        <small class="form-text text-muted">Average recommended: 7-9 hours</small>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Day in Cycle</label>
+                                        <input type="number" class="form-control" name="day_in_cycle" min="1" max="35" value="15">
+                                        <small class="form-text text-muted">Day 1 is the first day of your period</small>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Fatigue Level</label>
+                                        <select class="form-select" name="fatigue">
+                                            <option value="None">None</option>
+                                            <option value="Low">Low</option>
+                                            <option value="Medium" selected>Medium</option>
+                                            <option value="High">High</option>
+                                            <option value="Very High">Very High</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Headaches</label>
+                                        <select class="form-select" name="headaches">
+                                            <option value="None">None</option>
+                                            <option value="Low">Low</option>
+                                            <option value="Medium" selected>Medium</option>
+                                            <option value="High">High</option>
+                                            <option value="Very High">Very High</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Bloating</label>
+                                        <select class="form-select" name="bloating">
+                                            <option value="None">None</option>
+                                            <option value="Low">Low</option>
+                                            <option value="Medium" selected>Medium</option>
+                                            <option value="High">High</option>
+                                            <option value="Very High">Very High</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-3 border-top">
+                                <button type="submit" class="btn btn-primary btn-lg w-100 py-3" id="analyzeBtn">
+                                    <i class="fas fa-brain"></i> Analyze My Health
+                                </button>
+                                <small class="form-text text-muted text-center d-block mt-2">
+                                    Your data is processed securely and used only to provide personalized recommendations
+                                </small>
+                            </div>
+                        </form>
+
+    <!-- ADD THIS LOADING SPINNER RIGHT AFTER THE FORM -->
+    <div id="loading" style="display: none; text-align: center; margin: 40px 0; padding: 30px; background: #f8f9fa; border-radius: 10px;">
+        <div style="color: #e91e63; font-size: 24px; margin-bottom: 15px;">
+            <i class="fas fa-spinner fa-spin"></i>
+        </div>
+        <h4 style="color: #e91e63; margin-bottom: 10px;">AI is analyzing your symptoms...</h4>
+        <p style="color: #666; margin-bottom: 5px;">⏳ This may take 1-2 minutes as the AI model processes your request</p>
+        <p style="color: #888; font-size: 14px;">Please be patient - generating personalized medical advice takes time</p>
+    </div>
+                        
+                        <div id="results" class="mt-4" style="display: none;">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Analysis Complete</h5>
+                                    <small>Personalized insights based on your input</small>
+                                </div>
+                                <div class="card-body" id="resultsContent">
+                                    <!-- Results will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="/history" class="btn btn-outline-primary">
+                        <i class="fas fa-history"></i> View Analysis History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update pain value display
+            const painSlider = document.querySelector('input[name="pain_level"]');
+            const painValue = document.getElementById('painValue');
+            
+            painSlider.addEventListener('input', function() {
+                painValue.textContent = this.value;
+                // Update pain badge color based on level
+                if (this.value >= 7) {
+                    painValue.className = 'badge bg-danger';
+                } else if (this.value >= 4) {
+                    painValue.className = 'badge bg-warning';
+                } else {
+                    painValue.className = 'badge bg-primary';
+                }
+            });
+
+                        // Handle form submission
+
+            document.getElementById('analysisForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const form = e.target;
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+    const button = form.querySelector('button[type="submit"]');
+    
+    // Show loading, hide results
+    loading.style.display = 'block';
+    results.style.display = 'none';
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    try {
+        // Use FormData directly
+        const formData = new FormData(form);
+        
+        console.log('Sending FormData to API');
+        
+        // Shorter timeout for faster feedback
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 seconds
+        
+        const response = await fetch('/api/analyze', {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('API Response:', result);
+        
+        if (result.success) {
+            displayResults(result.analysis || result); // Handle both formats
+        } else {
+            throw new Error(result.error || result.detail || 'Analysis failed');
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        displayError(error);
+    } finally {
+        loading.style.display = 'none';
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-brain"></i> Analyze Health Data';
+    }
+});
+
+
+function displayResults(analysis) {
+    const resultsContent = document.getElementById('resultsContent');
+    const resultsDiv = document.getElementById('results');
+    
+    console.log('Displaying analysis:', analysis);
+    
+    let html = `
+        <div class="alert alert-success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1"><i class="fas fa-check-circle"></i> Health Analysis Complete!</h5>
+                    <small class="mb-0">Powered by Medical Knowledge Graph</small>
+                </div>
+                <span class="badge bg-info">Expert System</span>
+            </div>
+        </div>
+    `;
+    
+    // Display predictions if available
+    if (analysis.predictions) {
+        html += `
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="fas fa-chart-line"></i> Cycle Predictions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span><strong>Next Period:</strong></span>
+                                <span class="badge bg-info fs-6">${analysis.predictions.next_period_in_days} days</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span><strong>Predicted Phase:</strong></span>
+                                <span class="badge bg-secondary">
+                                    ${analysis.predictions.predicted_phase}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Display advice
+    if (analysis.advice) {
+        html += `
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-comment-medical"></i> Personalized Recommendations</h6>
+                </div>
+                <div class="card-body">
+                    <div class="advice-content">
+                        ${analysis.advice.replace(/\n/g, '<br>')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Display knowledge graph recommendations in detail
+    if (analysis.knowledge_graph_recommendations) {
+        const kg = analysis.knowledge_graph_recommendations;
+        html += `
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Medical Recommendations</h6>
+                </div>
+                <div class="card-body">
+        `;
+        
+        if (kg.medications && kg.medications.length > 0) {
+            html += `
+                <div class="mb-3">
+                    <h6><i class="fas fa-pills text-success"></i> Recommended Medications</h6>
+                    <div class="ms-3">
+                        ${kg.medications.map(med => `<span class="badge bg-success me-2">${med}</span>`).join('')}
+                    </div>
+                    <small class="text-muted">Consult a doctor before taking any medication</small>
+                </div>
+            `;
+        }
+        
+        if (kg.hygiene_products && kg.hygiene_products.length > 0) {
+            html += `
+                <div class="mb-3">
+                    <h6><i class="fas fa-shopping-bag text-primary"></i> Hygiene Products</h6>
+                    <div class="ms-3">
+                        ${kg.hygiene_products.map(product => `<span class="badge bg-primary me-2">${product}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (kg.lifestyle_tips && kg.lifestyle_tips.length > 0) {
+            html += `
+                <div class="mb-3">
+                    <h6><i class="fas fa-heart text-danger"></i> Lifestyle Tips</h6>
+                    <div class="ms-3">
+                        ${kg.lifestyle_tips.map(tip => `<div class="mb-1">• ${tip}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (kg.phase_specific && kg.phase_specific.length > 0) {
+            html += `
+                <div class="mb-3">
+                    <h6><i class="fas fa-calendar text-warning"></i> Phase Insights</h6>
+                    <div class="ms-3">
+                        ${kg.phase_specific.map(insight => `<div class="mb-1">• ${insight}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (kg.symptoms_identified && kg.symptoms_identified.length > 0) {
+            html += `
+                <div class="mb-3">
+                    <h6><i class="fas fa-list text-warning"></i> Identified Symptoms</h6>
+                    <div class="ms-3">
+                        ${kg.symptoms_identified.map(symptom => `<span class="badge bg-warning text-dark me-2">${symptom.replace(/_/g, ' ')}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += `</div></div>`;
+    }
+    
+    // Display system info
+    html += `
+        <div class="text-center mt-3">
+            <small class="text-muted">
+                <i class="fas fa-database"></i> 
+                Medical Knowledge Graph: 46 nodes, 25 relationships
+            </small>
+        </div>
+    `;
+    
+    resultsContent.innerHTML = html;
+    resultsDiv.style.display = 'block';
+    
+    // Scroll to results
+    resultsDiv.scrollIntoView({ behavior: 'smooth' });
+}
+            function formatAdvice(advice) {
+                if (!advice) return '<p class="text-muted">No specific advice available.</p>';
+                
+                // Convert markdown-like formatting to HTML
+                return advice
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>')
+                    .replace(/(🔴|🟡|🟢)/g, '<span class="fs-5">$1</span>')
+                    .replace(/^- (.*?)(?=\n|$)/gm, '<li>$1</li>')
+                    .replace(/(<li>.*<\/li>)/s, '<ul class="mb-2">$1</ul>');
+            }
+            
+            function showAlert(message, type) {
+                // Remove any existing alerts
+                const existingAlerts = document.querySelectorAll('.alert-dismissible');
+                existingAlerts.forEach(alert => alert.remove());
+                
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+                alertDiv.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                
+                const form = document.getElementById('analysisForm');
+                form.parentNode.insertBefore(alertDiv, form.nextSibling);
+                
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }
+        });
+
+        function displayError(error) {
+    const resultsContent = document.getElementById('resultsContent');
+    const resultsDiv = document.getElementById('results');
+    
+    let errorMessage = error.message || 'Unknown error occurred';
+    let errorDetails = '';
+    
+    if (error.name === 'AbortError') {
+        errorMessage = 'Analysis Timeout';
+        errorDetails = `
+            <p>The AI analysis is taking longer than expected. This is normal when the AI model is processing complex health data.</p>
+            <div class="mt-3 p-3 bg-light rounded">
+                <h6>Quick Health Tips:</h6>
+                <ul class="mb-0">
+                    <li>Stay hydrated and maintain a balanced diet</li>
+                    <li>Get 7-9 hours of quality sleep nightly</li>
+                    <li>Gentle exercise can help reduce symptoms</li>
+                    <li>Consider heat therapy for pain relief</li>
+                    <li>Track your cycle patterns for better understanding</li>
+                </ul>
+            </div>
+            <p class="mt-3"><small>Try refreshing the page or using simpler symptom data.</small></p>
+        `;
+    } else if (errorMessage.includes('422')) {
+        errorMessage = 'Data Format Error';
+        errorDetails = 'The system received data in an unexpected format. Please try refreshing the page.';
+    }
+    
+    resultsContent.innerHTML = `
+        <div class="alert alert-danger">
+            <h5><i class="fas fa-exclamation-triangle"></i> ${errorMessage}</h5>
+            ${errorDetails}
+        </div>
+    `;
+    
+    resultsDiv.style.display = 'block';
+    resultsDiv.scrollIntoView({ behavior: 'smooth' });
+}
+    </script>
+</body>
+</html>

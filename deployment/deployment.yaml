@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: menstrual-health-app
+  labels:
+    app: menstrual-health-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: menstrual-health-app
+  template:
+    metadata:
+      labels:
+        app: menstrual-health-app
+    spec:
+      containers:
+      - name: menstrual-health-app
+        image: your-dockerhub-username/menstrual-health-app:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
